@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask API - Teste</title>
+</head>
+<body>
+    <h1>Testando API Flask</h1>
+
+    <!-- Botão para listar usuários -->
+    <button onclick="listarUsuarios()">Listar Usuários</button>
+    <ul id="listaUsuarios"></ul>
+
+    <!-- Formulário para criar usuário -->
+    <h2>Criar Usuário</h2>
+    <input type="text" id="nome" placeholder="Nome">
+    <input type="number" id="idade" placeholder="Idade">
+    <select id="solteiro">
+        <option value="true">Solteiro</option>
+        <option value="false">Casado</option>
+    </select>
+    <button onclick="criarUsuario()">Criar</button>
+
+    <!-- Formulário para atualizar usuário -->
+    <h2>Atualizar Usuário</h2>
+    <input type="number" id="idAtualizar" placeholder="ID do usuário">
+    <input type="text" id="novoNome" placeholder="Novo nome">
+    <input type="number" id="novaIdade" placeholder="Nova idade">
+    <select id="novoSolteiro">
+        <option value="true">Solteiro</option>
+        <option value="false">Casado</option>
+    </select>
+    <button onclick="atualizarUsuario()">Atualizar</button>
+
+    <!-- Formulário para deletar usuário -->
+    <h2>Deletar Usuário</h2>
+    <input type="number" id="idDeletar" placeholder="ID do usuário">
+    <button onclick="deletarUsuario()">Deletar</button>
+
+    <script>
+        const API_URL = "http://127.0.0.1:5000/usuarios";
+
+        // Listar usuários
+        function listarUsuarios() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Resposta da API:", data); // Depuração
+                    const lista = document.getElementById("listaUsuarios");
+                    lista.innerHTML = "";
+
+                    if (!Array.isArray(data)) {
+                        console.error("Erro: A API não retornou um array.");
+                        return;
+                    }
+
+                    data.forEach(usuario => {
+                        const li = document.createElement("li");
+                        li.textContent = `ID: ${usuario.id}, Nome: ${usuario.nome}, Idade: ${usuario.idade}, Solteiro: ${usuario.solteiro ? "Sim" : "Não"}`;
+                        lista.appendChild(li);
+                    });
+                })
+                .catch(error => console.error("Erro ao listar usuários:", error));
+        }
+
+        // Criar usuário
+        function criarUsuario() {
+            const nome = document.getElementById("nome").value.trim();
+            const idade = document.getElementById("idade").value.trim();
+            const solteiro = document.getElementById("solteiro").value === "true";
+
+            if (!nome || !idade) {
+                alert("Preencha todos os campos!");
+                return;
+            }
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, idade: parseInt(idade), solteiro })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensagem);
+                listarUsuarios();
+            })
+            .catch(error => console.error("Erro ao criar usuário:", error));
+        }
+
+        // Atualizar usuário
+        function atualizarUsuario() {
+            const id = document.getElementById("idAtualizar").value.trim();
+            const nome = document.getElementById("novoNome").value.trim();
+            const idade = document.getElementById("novaIdade").value.trim();
+            const solteiro = document.getElementById("novoSolteiro").value === "true";
+
+            if (!id || !nome || !idade) {
+                alert("Preencha todos os campos!");
+                return;
+            }
+
+            fetch(`${API_URL}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, idade: parseInt(idade), solteiro })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensagem);
+                listarUsuarios();
+            })
+            .catch(error => console.error("Erro ao atualizar usuário:", error));
+        }
+
+        // Deletar usuário
+        function deletarUsuario() {
+            const id = document.getElementById("idDeletar").value.trim();
+
+            if (!id) {
+                alert("Informe o ID do usuário para deletar!");
+                return;
+            }
+
+            fetch(`${API_URL}/${id}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.mensagem);
+                    listarUsuarios();
+                })
+                .catch(error => console.error("Erro ao deletar usuário:", error));
+        }
+    </script>
+</body>
+</html>
